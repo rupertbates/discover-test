@@ -3,18 +3,26 @@ package com.theguardian.discover;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.FrameLayout;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
 
 import java.util.Random;
 
 import butterknife.ButterKnife;
+import butterknife.InjectView;
 
 public class DiscoverFragment extends Fragment {
+    @InjectView(R.id.recycler_view)
+    RecyclerView recyclerView;
+
     public DiscoverFragment() {
     }
 
@@ -26,9 +34,18 @@ public class DiscoverFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        final RelativeLayout relativeLayout = (RelativeLayout) inflater.inflate(R.layout.fragment_discover, container, false);
-        ButterKnife.inject(this, relativeLayout);
+        final FrameLayout frameLayout = (FrameLayout) inflater.inflate(R.layout.fragment_discover, container, false);
+        ButterKnife.inject(this, frameLayout);
+        //setupItems(relativeLayout);
+        CardAdapter adapter = new CardAdapter();
+        recyclerView.setHasFixedSize(false);
+        recyclerView.setLayoutManager(new FrameLayoutManager(adapter));
+        recyclerView.setAdapter(adapter);
 
+        return frameLayout;
+    }
+
+    private void setupItems(final RelativeLayout relativeLayout) {
         // Set up ListView example
         String[] items = new String[20];
         for (int i = 0; i < items.length; i++) {
@@ -66,6 +83,5 @@ public class DiscoverFragment extends Fragment {
                     }));
             relativeLayout.addView(dismissableView);
         }
-        return relativeLayout;
     }
 }
