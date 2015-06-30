@@ -31,7 +31,11 @@ public class FrameLayoutManager extends RecyclerView.LayoutManager {
 
     @Override
     public void onLayoutChildren(RecyclerView.Recycler recycler, RecyclerView.State state) {
-        for (int i = 0; i < getItemCount(); i++) {
+        int topItem = getItemCount() - 1;
+        int nextItem = Math.max(topItem - 1, 0);
+
+        for (int i = nextItem; i <= topItem; i++) {
+            Log.d(TAG, "Adding view for item " + i);
             View viewForPosition = recycler.getViewForPosition(i);
             addView(viewForPosition);
             measureChildWithMargins(viewForPosition, 0, 0);
@@ -53,8 +57,10 @@ public class FrameLayoutManager extends RecyclerView.LayoutManager {
 
         if (dy > 0) //Can't scroll up
             return 0;
-        if (getItemCount() == 1) //Can't scroll the last item
+        if (getItemCount() < 2) //Can't scroll the last item
             return 0;
+
+        Log.v(TAG, "getItemCount=" + getItemCount());
 
         int delta = -dy;
         currentScroll += delta;
