@@ -6,13 +6,19 @@ import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
 import android.widget.AbsListView;
+
+import static android.widget.AbsListView.OnScrollListener.SCROLL_STATE_FLING;
+import static android.widget.AbsListView.OnScrollListener.SCROLL_STATE_IDLE;
+import static android.widget.AbsListView.OnScrollListener.SCROLL_STATE_TOUCH_SCROLL;
 
 public class FrameLayoutManager extends RecyclerView.LayoutManager {
 
     public static final String TAG = "FrameLayoutManager";
     private final CardAdapter adapter;
     protected int currentScroll = 0;
+    private int currentScrollState;
 
     public FrameLayoutManager(CardAdapter cardAdapter) {
         this.adapter = cardAdapter;
@@ -45,9 +51,9 @@ public class FrameLayoutManager extends RecyclerView.LayoutManager {
     public int scrollVerticallyBy(int dy, RecyclerView.Recycler recycler,
                                   RecyclerView.State state) {
 
-        if(dy > 0) //Can't scroll up
+        if (dy > 0) //Can't scroll up
             return 0;
-        if(getItemCount() == 1) //Can't scroll the last item
+        if (getItemCount() == 1) //Can't scroll the last item
             return 0;
 
         int delta = -dy;
@@ -55,14 +61,21 @@ public class FrameLayoutManager extends RecyclerView.LayoutManager {
 
         View view = getTopChild();
         Log.d(TAG, "Current scroll=" + currentScroll + " child height=" + getDecoratedMeasuredHeight(view));
-        if (currentScroll > getDecoratedMeasuredHeight(view) / 2) {
-            Log.i(TAG, "More than halfway, snap");
-            view.offsetTopAndBottom(delta);
+        if (scrolledPastDismissPoint(view) && currentScrollState == SCROLL_STATE_FLING) {
+            Log.i(TAG, "Passed dismiss point and flinging, complete the dismiss");
+            //view.offsetTopAndBottom(delta);
+            int scrollDistance = getHeight() - currentScroll;
+            scrollOff();
+            return scrollDistance;
         } else {
-            Log.i(TAG, "Less than halfway, scroll");
+            Log.i(TAG, "Haven't reached dismiss point, scroll");
             view.offsetTopAndBottom(delta);
         }
         return -delta;
+    }
+
+    private boolean scrolledPastDismissPoint(View view) {
+        return currentScroll > getDecoratedMeasuredHeight(view) * 0.6;
     }
 
     private View getTopChild() {
@@ -75,17 +88,19 @@ public class FrameLayoutManager extends RecyclerView.LayoutManager {
 
     @Override
     public void onScrollStateChanged(int state) {
-        super.onScrollStateChanged(state);
-        if (state == AbsListView.OnScrollListener.SCROLL_STATE_IDLE) {
-            Log.i(TAG, "Scrolling finished");
-            if (currentScroll < getDecoratedMeasuredHeight(getTopChild()) * 0.75) {
+        Log.d(TAG, "Scroll state changed old=" + currentScrollState + " new=" + state);
+        if (currentScrollState == SCROLL_STATE_TOUCH_SCROLL && state == SCROLL_STATE_IDLE) {
+            Log.i(TAG, "Touch Scrolling finished");
+            if (!scrolledPastDismissPoint(getTopChild())) {
                 snapBack();
             } else {
                 scrollOff();
             }
-        } else if(state == AbsListView.OnScrollListener.SCROLL_STATE_FLING){
-
+        } else if (currentScrollState == SCROLL_STATE_FLING && state == SCROLL_STATE_IDLE && !scrolledPastDismissPoint(getTopChild())) {
+            Log.i(TAG, "Fling finished before dismiss point");
+            snapBack();
         }
+        currentScrollState = state;
     }
 
     private void scrollOff() {
@@ -148,7 +163,7 @@ public class FrameLayoutManager extends RecyclerView.LayoutManager {
         animator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
             @Override
             public void onAnimationUpdate(ValueAnimator animation) {
-                Log.i(TAG, "Animating to " + animation.getAnimatedValue());
+                Log.v(TAG, "Animating to " + animation.getAnimatedValue());
                 getTopChild().setTop((Integer) animation.getAnimatedValue());
             }
         });
