@@ -176,14 +176,4 @@ public class FrameLayoutManager extends RecyclerView.LayoutManager {
         animator.addListener(listener);
         animator.start();
     }
-
-
-    int scrollBy(int dy, RecyclerView.Recycler recycler, RecyclerView.State state) {
-        Log.d(TAG, "ScrollBy " + dy);
-        if (getChildCount() == 0 || dy == 0) {
-            return 0;
-        }
-        final int absDy = Math.abs(dy);
-        return absDy;
-    }
 }
