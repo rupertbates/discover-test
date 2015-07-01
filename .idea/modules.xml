@@ -4,6 +4,7 @@
     <modules>
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
       <module fileurl="file://$PROJECT_DIR$/discover-test.iml" filepath="$PROJECT_DIR$/discover-test.iml" />
+      <module fileurl="file://$PROJECT_DIR$/viewstacklayoutmanager/viewstacklayoutmanager.iml" filepath="$PROJECT_DIR$/viewstacklayoutmanager/viewstacklayoutmanager.iml" />
     </modules>
   </component>
 </project>

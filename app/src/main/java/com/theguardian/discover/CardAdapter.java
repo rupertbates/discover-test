@@ -7,6 +7,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.theguardian.widget.ViewStackAdapter;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -15,7 +17,7 @@ import java.util.Random;
 
 import static com.theguardian.discover.FrameLayoutManager.TAG;
 
-public class CardAdapter extends RecyclerView.Adapter<CardViewHolder> {
+public class CardAdapter extends ViewStackAdapter<CardViewHolder> {
     private List<Integer> items = new ArrayList<>(5);
 
     public CardAdapter(){
