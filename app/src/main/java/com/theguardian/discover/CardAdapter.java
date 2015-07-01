@@ -1,7 +1,6 @@
 package com.theguardian.discover;
 
 import android.graphics.Color;
-import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -10,14 +9,12 @@ import android.view.ViewGroup;
 import com.theguardian.widget.ViewStackAdapter;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 
-import static com.theguardian.discover.FrameLayoutManager.TAG;
 
 public class CardAdapter extends ViewStackAdapter<CardViewHolder> {
+    private static final String TAG = "CardAdapter";
     private List<Integer> items = new ArrayList<>(5);
 
     public CardAdapter(){
@@ -34,19 +31,6 @@ public class CardAdapter extends ViewStackAdapter<CardViewHolder> {
     public CardViewHolder onCreateViewHolder(ViewGroup viewGroup, int i) {
         Log.d(TAG, "Creating view in CardAdapter");
         View view = LayoutInflater.from(viewGroup.getContext()).inflate(R.layout.card_layout, viewGroup, false);
-        view.setOnTouchListener(new SwipeDismissTouchListener(
-                view,
-                null, new SwipeDismissTouchListener.DismissCallbacks() {
-            @Override
-            public boolean canDismiss(Object token) {
-                return false;
-            }
-
-            @Override
-            public void onDismiss(View view, Object token) {
-
-            }
-        }));
         CardViewHolder holder = new CardViewHolder(view);
         holder.textView.setBackgroundColor(items.get(i));
         holder.textView.setText("Item " + i);
