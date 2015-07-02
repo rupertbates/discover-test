@@ -67,7 +67,6 @@ public class ViewStackLayoutManager extends RecyclerView.LayoutManager {
         Log.d(TAG, "Current scroll=" + currentScroll + " child height=" + getDecoratedMeasuredHeight(view));
         if (scrolledPastDismissPoint(view) && currentScrollState == SCROLL_STATE_FLING) {
             Log.i(TAG, "Passed dismiss point and flinging, complete the dismiss");
-            //view.offsetTopAndBottom(delta);
             int scrollDistance = getHeight() - currentScroll;
             scrollOff();
             return scrollDistance;
@@ -79,7 +78,7 @@ public class ViewStackLayoutManager extends RecyclerView.LayoutManager {
     }
 
     private boolean scrolledPastDismissPoint(View view) {
-        return currentScroll > getDecoratedMeasuredHeight(view) * 0.6;
+        return currentScroll > getDecoratedMeasuredHeight(view) * 0.60;
     }
 
     private View getTopChild() {
@@ -159,7 +158,7 @@ public class ViewStackLayoutManager extends RecyclerView.LayoutManager {
     }
 
     public void smoothScrollToPosition(int position, Animator.AnimatorListener listener) {
-        int duration = 150; // Math.abs(position - currentScroll);
+        int duration = 150;
         Log.d(TAG, "Position=" + position + " currentScroll=" + currentScroll + " duration=" + duration);
         ValueAnimator animator = ValueAnimator.ofInt(currentScroll, position)
                 .setDuration(duration);
@@ -168,7 +167,11 @@ public class ViewStackLayoutManager extends RecyclerView.LayoutManager {
             @Override
             public void onAnimationUpdate(ValueAnimator animation) {
                 Log.v(TAG, "Animating to " + animation.getAnimatedValue());
-                getTopChild().setTop((Integer) animation.getAnimatedValue());
+                View topChild = getTopChild();
+                int value = (int) animation.getAnimatedValue();
+                int bottom = value + topChild.getHeight();
+                topChild.setTop(value);
+                topChild.setBottom(bottom);
             }
         });
         animator.addListener(listener);
