@@ -53,7 +53,7 @@ public class ViewStackLayoutManager extends RecyclerView.LayoutManager {
     public int scrollVerticallyBy(int dy, RecyclerView.Recycler recycler,
                                   RecyclerView.State state) {
 
-        if (dy > 0) //Can't scroll up
+        if (dy - currentScroll > 0) //Can't scroll up
             return 0;
         if (getItemCount() < 2) //Can't scroll the last item
             return 0;
