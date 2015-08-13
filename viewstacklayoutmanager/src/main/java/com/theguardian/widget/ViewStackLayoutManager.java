@@ -36,16 +36,19 @@ public class ViewStackLayoutManager extends RecyclerView.LayoutManager {
 
         detachAndScrapAttachedViews(recycler);
 
-
         for (int i = nextItem; i >= topItem; i--) {
             Log.d(TAG, "Adding view for item " + i);
             View viewForPosition = recycler.getViewForPosition(i);
             viewForPosition.setMinimumWidth(getWidth());
             addView(viewForPosition);
             measureChildWithMargins(viewForPosition, 0, 0);
-            int offset = i * OFFSET_MULTIPLIER;
-            layoutDecorated(viewForPosition, (offset / 2), offset, getDecoratedMeasuredWidth(viewForPosition) - offset, getDecoratedMeasuredHeight(viewForPosition) + offset);
+            int offset = getOffset(i);
+            layoutDecorated(viewForPosition, offset, offset, getDecoratedMeasuredWidth(viewForPosition) - offset, getDecoratedMeasuredHeight(viewForPosition) + offset);
         }
+    }
+
+    public int getOffset(int index){
+        return (index * OFFSET_MULTIPLIER) + OFFSET_MULTIPLIER;
     }
 
     @Override
@@ -165,7 +168,7 @@ public class ViewStackLayoutManager extends RecyclerView.LayoutManager {
     }
 
     private void snapBack() {
-        int offset = (numberDismissed * OFFSET_MULTIPLIER) / 2;
+        int offset = getOffset(numberDismissed);
         Log.i(TAG, "Snap back offset = " + offset);
         smoothScrollToPosition(offset, new Animator.AnimatorListener() {
             @Override
