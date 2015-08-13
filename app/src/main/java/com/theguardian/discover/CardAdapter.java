@@ -32,7 +32,7 @@ public class CardAdapter extends ViewStackAdapter<CardViewHolder> {
         Log.d(TAG, "Creating view in CardAdapter");
         View view = LayoutInflater.from(viewGroup.getContext()).inflate(R.layout.card_layout, viewGroup, false);
         CardViewHolder holder = new CardViewHolder(view);
-        holder.textView.setBackgroundColor(items.get(i));
+        holder.itemView.setBackgroundColor(items.get(i));
         holder.textView.setText("Item " + i);
         return holder;
     }
@@ -40,7 +40,7 @@ public class CardAdapter extends ViewStackAdapter<CardViewHolder> {
     @Override
     public void onBindViewHolder(CardViewHolder cardViewHolder, int i) {
         Log.d(TAG, "Reusing view in CardAdapter");
-        cardViewHolder.textView.setBackgroundColor(items.get(i));
+        cardViewHolder.itemView.setBackgroundColor(items.get(i));
         cardViewHolder.textView.setText("Item " + i);
     }
 

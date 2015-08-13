@@ -14,9 +14,11 @@ import static android.widget.AbsListView.OnScrollListener.SCROLL_STATE_TOUCH_SCR
 public class ViewStackLayoutManager extends RecyclerView.LayoutManager {
 
     public static final String TAG = "ViewStackLayoutManager";
+    public static final int OFFSET_MULTIPLIER = 20;
     private final ViewStackAdapter adapter;
     protected int currentScroll = 0;
     private int currentScrollState;
+    private int numberDismissed = 0;
 
     public ViewStackLayoutManager(ViewStackAdapter adapter) {
         this.adapter = adapter;
@@ -24,20 +26,25 @@ public class ViewStackLayoutManager extends RecyclerView.LayoutManager {
 
     @Override
     public RecyclerView.LayoutParams generateDefaultLayoutParams() {
-        return new RecyclerView.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
+        return new RecyclerView.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
     }
 
     @Override
     public void onLayoutChildren(RecyclerView.Recycler recycler, RecyclerView.State state) {
-        int topItem = getItemCount() - 1;
-        int nextItem = Math.max(topItem - 1, 0);
+        int topItem = numberDismissed;
+        int nextItem = Math.min(5, getItemCount() - 1);
 
-        for (int i = nextItem; i <= topItem; i++) {
+        detachAndScrapAttachedViews(recycler);
+
+
+        for (int i = nextItem; i >= topItem; i--) {
             Log.d(TAG, "Adding view for item " + i);
             View viewForPosition = recycler.getViewForPosition(i);
+            viewForPosition.setMinimumWidth(getWidth());
             addView(viewForPosition);
             measureChildWithMargins(viewForPosition, 0, 0);
-            layoutDecorated(viewForPosition, 0, 0, getWidth(), getWidth());
+            int offset = i * OFFSET_MULTIPLIER;
+            layoutDecorated(viewForPosition, (offset / 2), offset, getDecoratedMeasuredWidth(viewForPosition) - offset, getDecoratedMeasuredHeight(viewForPosition) + offset);
         }
     }
 
@@ -51,10 +58,17 @@ public class ViewStackLayoutManager extends RecyclerView.LayoutManager {
      */
     @Override
     public int scrollHorizontallyBy(int dx, RecyclerView.Recycler recycler,
-                                  RecyclerView.State state) {
+                                    RecyclerView.State state) {
 
-        if (dx - currentScroll > 0) //Can't scroll up
-            return 0;
+        if (dx - currentScroll > 0) { //If we are trying to swipe a card to the right from its starting point
+            if (numberDismissed > 0) { //If there are any dismissed cards then bring them back
+                numberDismissed--;
+                Log.i(TAG, "Swiping card back from offscreen numberdismissed = " + numberDismissed);
+                currentScroll = getWidth();
+            } else
+                return 0; //There are no dismissed cards so we can't swipe right
+        }
+
         if (getItemCount() < 2) //Can't scroll the last item
             return 0;
 
@@ -65,16 +79,28 @@ public class ViewStackLayoutManager extends RecyclerView.LayoutManager {
 
         View view = getTopChild();
         Log.d(TAG, "Current scroll=" + currentScroll + " child width=" + getDecoratedMeasuredWidth(view));
-        if (scrolledPastDismissPoint(view) && currentScrollState == SCROLL_STATE_FLING) {
-            Log.i(TAG, "Passed dismiss point and flinging, complete the dismiss");
+        if (scrollingRight(dx) && scrolledPastDismissPoint(view) && currentScrollState == SCROLL_STATE_FLING) {
+            Log.i(TAG, "Passed dismiss point and flinging off screen, complete the dismiss");
             int scrollDistance = getWidth() - currentScroll;
             scrollOff();
             return scrollDistance;
+        } else if (scrollingLeft(dx) && !scrolledPastDismissPoint(view) && currentScrollState == SCROLL_STATE_FLING) {
+            Log.i(TAG, "Passed dismiss point and flinging back from off screen, complete the snap back");
+            snapBack();
+            return currentScroll;
         } else {
-            Log.i(TAG, "Haven't reached dismiss point, scroll");
+            Log.d(TAG, "Haven't reached dismiss point, scroll");
             view.offsetLeftAndRight(delta);
         }
         return -delta;
+    }
+
+    private boolean scrollingLeft(int dx) {
+        return !scrollingRight(dx);
+    }
+
+    private boolean scrollingRight(int dx) {
+        return dx < 0;
     }
 
     private boolean scrolledPastDismissPoint(View view) {
@@ -82,11 +108,16 @@ public class ViewStackLayoutManager extends RecyclerView.LayoutManager {
     }
 
     private View getTopChild() {
-        return getChildAt(getChildCount() - 1);
+        return getChildAt(getChildCount() - (1 + numberDismissed));
     }
 
     private int getTopItemIndex() {
-        return getItemCount() - 1;
+        return 0;
+    }
+
+    private void removeItem() {
+        numberDismissed++;
+        //requestLayout();
     }
 
     @Override
@@ -117,7 +148,8 @@ public class ViewStackLayoutManager extends RecyclerView.LayoutManager {
             @Override
             public void onAnimationEnd(Animator animation) {
                 currentScroll = 0;
-                adapter.removeItem(getTopItemIndex());
+                //adapter.removeItem(getTopItemIndex());
+                removeItem();
             }
 
             @Override
@@ -133,8 +165,9 @@ public class ViewStackLayoutManager extends RecyclerView.LayoutManager {
     }
 
     private void snapBack() {
-        Log.i(TAG, "Snap back");
-        smoothScrollToPosition(0, new Animator.AnimatorListener() {
+        int offset = (numberDismissed * OFFSET_MULTIPLIER) / 2;
+        Log.i(TAG, "Snap back offset = " + offset);
+        smoothScrollToPosition(offset, new Animator.AnimatorListener() {
             @Override
             public void onAnimationStart(Animator animation) {
 
