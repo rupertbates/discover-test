@@ -47,7 +47,20 @@ public class ViewStackLayoutManager extends RecyclerView.LayoutManager {
         }
     }
 
-    public int getOffset(int index){
+    /**
+     * Resize the cards to the correct height when a card is dismissed or brought back
+     */
+    public void relayout() {
+        int topItem = getChildCount() - (numberDismissed + 1);
+        int bottomItem = 0;
+        for (int i = topItem; i >= bottomItem; i--) {
+            View viewForPosition = getChildAt(i);
+            int offset = getOffset(topItem - i);
+            layoutDecorated(viewForPosition, offset, offset, getDecoratedMeasuredWidth(viewForPosition) - offset, getDecoratedMeasuredHeight(viewForPosition) + offset);
+        }
+    }
+
+    public int getOffset(int index) {
         return (index * OFFSET_MULTIPLIER) + OFFSET_MULTIPLIER;
     }
 
@@ -114,13 +127,10 @@ public class ViewStackLayoutManager extends RecyclerView.LayoutManager {
         return getChildAt(getChildCount() - (1 + numberDismissed));
     }
 
-    private int getTopItemIndex() {
-        return 0;
-    }
 
     private void removeItem() {
         numberDismissed++;
-        //requestLayout();
+        relayout();
     }
 
     @Override
@@ -179,6 +189,7 @@ public class ViewStackLayoutManager extends RecyclerView.LayoutManager {
             @Override
             public void onAnimationEnd(Animator animation) {
                 currentScroll = 0;
+                relayout();
             }
 
             @Override
