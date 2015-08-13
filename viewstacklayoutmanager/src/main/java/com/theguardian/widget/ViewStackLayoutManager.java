@@ -42,7 +42,7 @@ public class ViewStackLayoutManager extends RecyclerView.LayoutManager {
     }
 
     @Override
-    public boolean canScrollVertically() {
+    public boolean canScrollHorizontally() {
         return true;
     }
 
@@ -50,35 +50,35 @@ public class ViewStackLayoutManager extends RecyclerView.LayoutManager {
      * {@inheritDoc}
      */
     @Override
-    public int scrollVerticallyBy(int dy, RecyclerView.Recycler recycler,
+    public int scrollHorizontallyBy(int dx, RecyclerView.Recycler recycler,
                                   RecyclerView.State state) {
 
-        if (dy - currentScroll > 0) //Can't scroll up
+        if (dx - currentScroll > 0) //Can't scroll up
             return 0;
         if (getItemCount() < 2) //Can't scroll the last item
             return 0;
 
         Log.v(TAG, "getItemCount=" + getItemCount());
 
-        int delta = -dy;
+        int delta = -dx;
         currentScroll += delta;
 
         View view = getTopChild();
-        Log.d(TAG, "Current scroll=" + currentScroll + " child height=" + getDecoratedMeasuredHeight(view));
+        Log.d(TAG, "Current scroll=" + currentScroll + " child width=" + getDecoratedMeasuredWidth(view));
         if (scrolledPastDismissPoint(view) && currentScrollState == SCROLL_STATE_FLING) {
             Log.i(TAG, "Passed dismiss point and flinging, complete the dismiss");
-            int scrollDistance = getHeight() - currentScroll;
+            int scrollDistance = getWidth() - currentScroll;
             scrollOff();
             return scrollDistance;
         } else {
             Log.i(TAG, "Haven't reached dismiss point, scroll");
-            view.offsetTopAndBottom(delta);
+            view.offsetLeftAndRight(delta);
         }
         return -delta;
     }
 
     private boolean scrolledPastDismissPoint(View view) {
-        return currentScroll > getDecoratedMeasuredHeight(view) * 0.60;
+        return currentScroll > getDecoratedMeasuredWidth(view) * 0.60;
     }
 
     private View getTopChild() {
@@ -108,7 +108,7 @@ public class ViewStackLayoutManager extends RecyclerView.LayoutManager {
 
     private void scrollOff() {
         Log.i(TAG, "Scroll off");
-        smoothScrollToPosition(getHeight(), new Animator.AnimatorListener() {
+        smoothScrollToPosition(getWidth(), new Animator.AnimatorListener() {
             @Override
             public void onAnimationStart(Animator animation) {
 
@@ -168,10 +168,10 @@ public class ViewStackLayoutManager extends RecyclerView.LayoutManager {
             public void onAnimationUpdate(ValueAnimator animation) {
                 Log.v(TAG, "Animating to " + animation.getAnimatedValue());
                 View topChild = getTopChild();
-                int value = (int) animation.getAnimatedValue();
-                int bottom = value + topChild.getHeight();
-                topChild.setTop(value);
-                topChild.setBottom(bottom);
+                int left = (int) animation.getAnimatedValue();
+                int right = left + topChild.getWidth();
+                topChild.setLeft(left);
+                topChild.setRight(right);
             }
         });
         animator.addListener(listener);
